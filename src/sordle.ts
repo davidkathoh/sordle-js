@@ -1225,4 +1225,4 @@ export const IDL = {
       }
     }
   ]
-} as const
+} 

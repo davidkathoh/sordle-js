@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { console } from 'inspector';
 import { getJumbleAndHashedAnswer, hash } from './utils';
 import { setAdmin, startGame, updateGameSession, play, listen } from './update_program';
+import { ActionGetResponse } from '@solana/actions';
 
 const app = express();
 const PORT = 3000;
@@ -13,9 +14,18 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
 });
+
+
+
 // Define a simple route
 app.get('/sordle', (req: Request, res: Response) => {
-    
+     const response:ActionGetResponse = {
+       icon: 'https://picsum.photos/id/237/200/300',
+       title: 'Sordle',
+       description: 'This a word geussing game',
+       label: 'start a game',
+       error:{message:"error in the blink"}
+     }
     
     res.send("hello");
 });
