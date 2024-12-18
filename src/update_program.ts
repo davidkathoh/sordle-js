@@ -9,9 +9,9 @@ import WebSocket from 'ws';
 
 
 
-const connection = new Connection("https://devnet.helius-rpc.com/?api-key=e30a8b1e-1deb-4f7a-89bf-60b149f39320");
+ const connection = new Connection("https://devnet.helius-rpc.com/?api-key=e30a8b1e-1deb-4f7a-89bf-60b149f39320");
 const provider = new AnchorProvider(connection, new Wallet(admin), { commitment: "confirmed"});
- const program = new Program<Sordle>(IDL as unknown as  Sordle, provider)
+export const program = new Program<Sordle>(IDL as unknown as  Sordle, provider)
 
 // Import your IDL and program types
 
@@ -40,6 +40,68 @@ export async function setAdmin() {
     return tx
 }
 
+export async function ixStartGame(initiator:PublicKey){
+ // process.stdout.write(`📋 Program ID: ${program.programId.toString()}\n`);
+ 
+  return await program.methods
+  .startGame()
+  .accounts({
+    player: initiator,
+    // @ts-ignore
+    config: gameConfigPda,
+    game: gamePda(initiator),
+    systemProgram: SystemProgram.programId,
+  })
+  .instruction()
+}
+
+export async function ixUpdateGameSession(nonce,initiator:PublicKey){
+  // const gameAccount = await program.account.game.fetch(gamePda);
+  // let nonce = gameAccount.nonce;
+  let num1:anchor.BN = new anchor.BN(1);
+
+  let value = num1.add(nonce)
+  
+  
+   const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
+       [
+         Buffer.from("gamesession"), 
+         initiator.toBuffer(), 
+         Buffer.from(nonce.toArrayLike(Buffer,"be", 16))
+       ],
+       program.programId
+     );
+
+     
+     
+   let {jumble,hashed_valid} = getJumbleAndHashedAnswer()
+  
+  // console.log("GameSession PDA: ", gameSessionPda.toBase58());
+
+ 
+
+       const tx = await program.methods
+       .uploadWord({
+         jumbleWorld:jumble,
+         validWords:hashed_valid
+       })
+       .accounts({
+         signer: admin.publicKey,
+         // @ts-ignore
+         game: gamePda(initiator),
+         gameSession: gameSessionPda,
+         config: gameConfigPda,
+         systemProgram: SystemProgram.programId,
+       })
+       .signers([admin])
+       .instruction()
+
+       
+
+       return tx
+       
+  
+}
 export async function startGame(){
 
     const tx = await program.methods
@@ -57,23 +119,31 @@ export async function startGame(){
       return tx
 }
 
-export async function updateGameSession(nonce,initiator:PublicKey){
-   // const gameAccount = await program.account.game.fetch(gamePda);
-   // let nonce = gameAccount.nonce;
-    const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("gamesession"), 
-          initiator.toBuffer(), 
-          Buffer.from(nonce.toArrayLike(Buffer,"be", 16))
-        ],
-        program.programId
-      );
+export async function updateGameSession(initiator:PublicKey){
+  
 
-      
+   const gameAccount = await program.account.game.fetch(gamePda(initiator));
+   let  nonce = gameAccount.nonce;
+ 
+  
+
+   console.log("Game initiator: ",gameAccount.initiator.toBase58())
+   console.log("Game nonce",nonce.toString())
+   
+    const  [gameSession] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("gamesession"),
+        gameAccount.initiator.toBuffer(),
+        Buffer.from(nonce.toArrayLike(Buffer, "be", 16))
+      ],
+      program.programId
+    );
+
+    console.log("Game session Pda",gameSession.toBase58()) 
       
     let {jumble,hashed_valid} = getJumbleAndHashedAnswer()
    
-    console.log("GameSession PDA: ", gameSessionPda.toBase58());
+    
 
   
 
@@ -86,15 +156,15 @@ export async function updateGameSession(nonce,initiator:PublicKey){
         .accounts({
           signer: admin.publicKey,
           // @ts-ignore
-          game: gamePda,
-          gameSession: gameSessionPda,
+          game: gamePda(initiator),
+          gameSession: gameSession,
           config: gameConfigPda,
           systemProgram: SystemProgram.programId,
         })
         .signers([admin])
         .rpc({commitment:"confirmed"});
         console.log("transaction hash: ",tx)
-        return tx
+        return jumble
     } catch (error) {
         
         console.log("error uplaodaing");
@@ -102,28 +172,28 @@ export async function updateGameSession(nonce,initiator:PublicKey){
     }
 
     console.log("Done")
-    return " Done"
+    return jumble
    
 }
 
-export async function play(answer: string){
+export async function play(initiator:PublicKey,answer: string){
 
     
-    const gameAccount = await program.account.game.fetch(gamePda);
+    const gameAccount = await program.account.game.fetch(gamePda(initiator));
     let nonce = gameAccount.nonce;
 
-    console.log("NONCE: ",nonce.toString());
-    console.log("Player: ", initiator.publicKey.toBase58())
     const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
         [
           Buffer.from("gamesession"), 
-          initiator.publicKey.toBuffer(), 
+          initiator.toBuffer(), 
           Buffer.from(nonce.toArrayLike(Buffer,"be", 16))
         ],
         program.programId
       );
 
-      console.log("GameSession PDA: ", gameSessionPda.toBase58());
+      console.log("nonce play",nonce.toString())
+      
+      console.log("GameSession Play PDA: ", gameSessionPda.toBase58());
 
       try {
         
@@ -131,17 +201,17 @@ export async function play(answer: string){
     const tx = await program.methods
     .play(answer)
     .accounts({
-      signer: initiator.publicKey,
+      signer: initiator,
        // @ts-ignore
-      game: gamePda,
+      game: gamePda(initiator),
      
       gameSession: gameSessionPda,
       config: gameConfigPda,
       systemProgram: SystemProgram.programId,
-    })
-    .signers([initiator])
-    .rpc({commitment:"confirmed"});
-    console.log("transaction hash: ",tx)
+    }).instruction()
+    // .signers([initiator])
+    // .rpc({commitment:"confirmed"});
+    
     return tx
 } catch (error) {
       console.log(error)  
@@ -167,7 +237,7 @@ export async function listen(){
             console.log(`Hello World! Message received at: ${currentTime.toISOString()}`);
             try {
                 
-                await updateGameSession(event.nonce,event.player)
+                //await updateGameSession(event.nonce,event.player)
                 
               } catch (error:any) {
                 //res.status(500).json({ success: false, error:  });

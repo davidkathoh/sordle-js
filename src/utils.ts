@@ -66,3 +66,8 @@ export function hash(input: string) {
     hasher.update(input);
     return hasher.digest();
 }
+
+
+export const uint8ArrayToBase64 = (uint8Array: Uint8Array): string => {
+	return Buffer.from(uint8Array).toString('base64');
+};

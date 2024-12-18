@@ -21,7 +21,13 @@ const provider = new AnchorProvider(connection, new Wallet(admin), { commitment:
     program.programId
   );
 
- export const [gamePda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("game"), initiator.publicKey.toBuffer()],
-    program.programId
-  );
+  export const gamePda = (publicKey?: PublicKey) => {
+    const userPubkey = publicKey || initiator.publicKey;
+  
+    const [gamePda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("game"), userPubkey.toBuffer()],
+      program.programId
+    );
+  
+    return gamePda;
+  };
