@@ -31,3 +31,18 @@ const provider = new AnchorProvider(connection, new Wallet(admin), { commitment:
   
     return gamePda;
   };
+
+  export const gameSessionPda = (nonce, initiator:PublicKey)=>{
+
+    const  [gameSession] =  PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("gamesession"), 
+        initiator.toBuffer(), 
+        Buffer.from(nonce.toArrayLike(Buffer,"be", 16))
+      ],
+      program.programId
+    );
+
+    return gameSession
+
+  }

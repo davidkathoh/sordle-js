@@ -6,6 +6,7 @@ import { IDL, Sordle } from "./sordle";
 import { admin, gameConfigPda, gamePda, initiator } from "./constants";
 import { getJumbleAndHashedAnswer } from "./utils";
 import WebSocket from 'ws';
+import { uploader } from "./store";
 
 
 
@@ -144,8 +145,8 @@ export async function updateGameSession(initiator:PublicKey){
     let {jumble,hashed_valid} = getJumbleAndHashedAnswer()
    
     
-
-  
+     await uploader.uploadToGoogleCloud(jumble)
+    
 
     try {
         const tx = await program.methods

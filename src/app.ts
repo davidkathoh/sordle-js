@@ -5,7 +5,7 @@ import { getJumbleAndHashedAnswer, hash, uint8ArrayToBase64 } from './utils';
 import { setAdmin, startGame, updateGameSession, play, listen, ixStartGame, program, ixUpdateGameSession } from './update_program';
 import { actionCorsMiddleware, ActionGetResponse, ActionPostRequest, ActionPostResponse,ACTIONS_CORS_HEADERS, ActionsJson, createPostResponse, createActionHeaders} from '@solana/actions';
 import { clusterApiUrl, ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { admin, gamePda, initiator } from './constants';
+import { admin, gamePda, gameSessionPda, initiator } from './constants';
 
 const app = express();
 const PORT = 3000;
@@ -61,7 +61,7 @@ app.get('/actions.json', (req, res) => {
 app.get('/sordle', (req: Request, res: Response) => {
      const response:ActionGetResponse = {
        type:"action" ,
-       icon: 'https://picsum.photos/200',
+       icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
        title: 'Sordle',
        description: 'This a word geussing game',
        label: 'start a game',
@@ -152,7 +152,7 @@ console.log("post called");
   // }
    let respons:ActionGetResponse = {
       type:"action" ,
-      icon: 'https://picsum.photos/200',
+      icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
       title: 'Sordle',
       description: 'This a word geussing game',
       label: 'game started',
@@ -191,6 +191,7 @@ console.log("post called");
      const word = body.data.word
 
      const gameAccount = await program.account.game.fetch(gamePda(account));
+     const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
      const transaction = new Transaction();
      transaction.feePayer = account
  
@@ -219,7 +220,7 @@ if (simulation.value.err) {
       links:{
        next: {
             type:"post",
-            href:req.url+"//sordle/answer",
+            href:req.url+"/sordle/answer",
             
           }
         
@@ -227,7 +228,7 @@ if (simulation.value.err) {
     }
      let respons:ActionGetResponse = {
       type:"action" ,
-      icon: 'https://picsum.photos/200',
+      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
       title: 'Sordle',
       description: 'find a random word for this',
       label: 'game started',
@@ -262,13 +263,14 @@ if (simulation.value.err) {
             
     }
 
-    res.set(ACTIONS_CORS_HEADERS).json(response)
+    res.set(ACTIONS_CORS_HEADERS).json(respons)
   })
   app.post("/sordle/uploa", async(req,res)=>{
 
     const body:ActionPostRequest = req.body;
     let account = new PublicKey(body.account)
 
+    process.stdout.write(`📋 upload: ${JSON.stringify(body)}\n`);
     const transaction = new Transaction();
     transaction.feePayer = account
 
@@ -279,13 +281,16 @@ if (simulation.value.err) {
     transaction.recentBlockhash = recentBlockahs
 
     let response:ActionPostResponse
-
+    const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+    let image
     try {
-      const gameAccount = await program.account.game.fetch(gamePda(account));
+     // const gameAccount = await program.account.game.fetch(gamePda(account));
+      //const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
       const status = getGameStatus(gameAccount);
       const minutesPass = getMinutesSinceLastUpdate(gameAccount);
-      let dd = await updateGameSession(account)
-
+      image = await updateGameSession(account)
+      process.stdout.write(`📋 upload image : ${image}\n`);
       // response = {
         
       //   type:"message"
@@ -298,7 +303,7 @@ if (simulation.value.err) {
 
     let respons:ActionGetResponse = {
       type:"action" ,
-      icon: 'https://picsum.photos/200',
+      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
       title: 'Sordle',
       description: 'find a random word for this',
       label: 'game started',
