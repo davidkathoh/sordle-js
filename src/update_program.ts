@@ -192,8 +192,9 @@ export async function play(initiator:PublicKey,answer: string){
       );
 
       console.log("nonce play",nonce.toString())
-      
+
       console.log("GameSession Play PDA: ", gameSessionPda.toBase58());
+      console.log("Game status: ",gameAccount.status)
 
       try {
         
