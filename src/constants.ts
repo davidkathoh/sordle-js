@@ -21,11 +21,11 @@ const provider = new AnchorProvider(connection, new Wallet(admin), { commitment:
     program.programId
   );
 
-  export const gamePda = (publicKey?: PublicKey) => {
-    const userPubkey = publicKey || initiator.publicKey;
+  export const gamePda = (initiator: PublicKey) => {
+    
   
     const [gamePda] = PublicKey.findProgramAddressSync(
-      [Buffer.from("game"), userPubkey.toBuffer()],
+      [Buffer.from("game"), initiator.toBuffer()],
       program.programId
     );
   
@@ -46,3 +46,7 @@ const provider = new AnchorProvider(connection, new Wallet(admin), { commitment:
     return gameSession
 
   }
+
+  export const delay = (ms: number): Promise<void> => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};

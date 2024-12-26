@@ -4,8 +4,8 @@ import { console } from 'inspector';
 import { getJumbleAndHashedAnswer, hash, uint8ArrayToBase64 } from './utils';
 import { setAdmin, startGame, updateGameSession, play, listen, ixStartGame, program, ixUpdateGameSession } from './update_program';
 import { actionCorsMiddleware, ActionGetResponse, ActionPostRequest, ActionPostResponse,ACTIONS_CORS_HEADERS, ActionsJson, createPostResponse, createActionHeaders} from '@solana/actions';
-import { clusterApiUrl, ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { admin, gamePda, gameSessionPda, initiator } from './constants';
+import { clusterApiUrl, ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, TransactionStatus } from '@solana/web3.js';
+import { admin, delay, gamePda, gameSessionPda, initiator } from './constants';
 
 const app = express();
 const PORT = 3000;
@@ -61,7 +61,7 @@ app.get('/actions.json', (req, res) => {
 app.get('/sordle', (req: Request, res: Response) => {
      const response:ActionGetResponse = {
        type:"action" ,
-       icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
+       icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
        title: 'Sordle',
        description: 'This a word geussing game',
        label: 'start a game',
@@ -73,6 +73,13 @@ app.get('/sordle', (req: Request, res: Response) => {
      res.set(ACTIONS_CORS_HEADERS).send(response)
 
 });
+app.post("/answer",async(req:Request, res:Response)=>{
+
+  process.stdout.write(`📋 Pr: ${JSON.stringify(req.body)}\n`);
+  
+  res.send()
+
+})
 app.post("/sordle", async(req: Request, res: Response) => {
 
   
@@ -102,29 +109,21 @@ console.log("post called");
       transaction.add(
         await ixStartGame(account)
       )
+      process.stdout.write(`📋 start: accountInfo ===  null`);
      // transaction.add(await ixUpdateGameSession(0,account))
     }else{
       const gameAccount = await program.account.game.fetch(gamePda(account));
       const status = getGameStatus(gameAccount);
       const minutesPass = getMinutesSinceLastUpdate(gameAccount);
+      process.stdout.write(`📋 start: ${JSON.stringify(gameAccount)}`);
     
       if(minutesPass < 3 && status === "INITIATED"){
 
-
-        //Upload the game session and  display random word
-        let tx  = await ixUpdateGameSession(gameAccount.nonce,account);
-       // transaction.add( await ixStartGame(account) )
-        transaction.add(await ixUpdateGameSession(gameAccount.nonce,account))
-    
-
-        const simulation = await connection.simulateTransaction(transaction)
-
-        if (simulation.value.err) {
-          process.stderr.write(`Simulation failed:', ${JSON.stringify(simulation)}`);}
-        
+        process.stdout.write(`📋 start: minutesPass < 3 && status === "INITIATED" \n`);
       }else if(minutesPass > 3){
         //start game
           transaction.add( await ixStartGame(account) )
+          process.stdout.write(`📋 start: minutesPass > 3 \n`);
       }
     
     }
@@ -186,53 +185,91 @@ console.log("post called");
 
   app.post("/sordle/answer", async(req,res)=>{
 
-    const body = req.body;
-     const account = new PublicKey(body.account)
-     const word = body.data.word
-
-     const gameAccount = await program.account.game.fetch(gamePda(account));
-     const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
-     const transaction = new Transaction();
-     transaction.feePayer = account
- 
-     const recentBlockahs = (await connection.getLatestBlockhash()).blockhash
-     
- 
-   
-     transaction.recentBlockhash = recentBlockahs
-
-    let tx = await play(account, word)
-
-    transaction.add(tx)
     
-    const simulation = await connection.simulateTransaction(transaction);
-if (simulation.value.err) {
+    const body = req.body;
+    process.stdout.write(`📋 answer  : ${JSON.stringify(body)}\n`);
+    const account = new PublicKey(body.account)
+
+    let response;
+    if("signature" in req.body){
+      const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      process.stdout.write(`📋 answer  : valid \n`);
+
+       response= {
+        type:"action" ,
+        icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
+        title: 'Sordle',
+        description: 'find a random word for this',
+        label: 'game started',
+        error:{message:"error in the blink"},
+        links:{
+          actions:[
+            {
+              label: "submit",
+              href: req.baseUrl + "/sordle/answer",
+              parameters: [
+                {
+                  name: "word",
+                  label: "Laad"
+                }
+              ]
+             
+              ,
+              type: 'post'
+            }
+                ]
+              
+                }
+              
+      }
+      res.set(ACTIONS_CORS_HEADERS).json(response)
+    }else{
+      const word = body.data.word
+      const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      const transaction = new Transaction();
+      transaction.feePayer = account
   
-  process.stdout.write(`📋 Pr: ${JSON.stringify(simulation.value)}\n`);
-    console.error('Simulation failed:', simulation.value.err);
-    console.log('Logs:', simulation.value.logs);
-    return;
-}
-    let response:ActionPostResponse ={
-      type: "transaction",
-      transaction:uint8ArrayToBase64(transaction.serialize({requireAllSignatures:false, verifySignatures:false})),
-      message:"Game started",
-      links:{
-       next: {
-            type:"post",
-            href:req.url+"/sordle/answer",
-            
-          }
-        
-       }
+      const recentBlockahs = (await connection.getLatestBlockhash()).blockhash
+      
+  
+    
+      transaction.recentBlockhash = recentBlockahs
+ 
+     let tx = await play(account, word)
+ 
+     transaction.add(tx)
+     
+     const simulation = await connection.simulateTransaction(transaction);
+ if (simulation.value.err) {
+  const customCode = JSON.parse(JSON.stringify(simulation.value)).err?.InstructionError[1]?.Custom;
+
+  if(customCode == 6006){
+    //game over show score
+    process.stdout.write(`📋 6006: ${customCode}\n`);
+     response = {
+      type:"action" ,
+      icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
+      title: 'Sordle',
+      description: 'This a word geussing game',
+      label: 'game started',
+      error:{message:"error in the blink"}
     }
-     let respons:ActionGetResponse = {
+    res.set(ACTIONS_CORS_HEADERS).json(response).status(402)
+  }else if(customCode == 6000){
+// not permitted
+process.stdout.write(`📋 6000: ${customCode}\n`);
+  }
+  else if(customCode == 6001){
+    process.stdout.write(`📋 6001: ${customCode}\n`);
+     response = {
       type:"action" ,
       icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
       title: 'Sordle',
-      description: 'find a random word for this',
+      description: 'Not a valid world',
       label: 'game started',
-      error:{message:"error in the blink"},
+      error:{message:"Not a valid world"},
       links:{
         actions:[
           {
@@ -243,18 +280,7 @@ if (simulation.value.err) {
                 name: "word",
                 label: "Laad"
               }
-            ]
-            // type: "message",
-            // parameters: [
-            //   {
-            //     name: "param",
-            //     label: "submit",
-            //     required: true
-            //   }
-            // ],
-            // href: req.baseUrl +"sordle/answer",
-            // label: 'david'
-            ,
+            ],
             type: 'post'
           }
               ]
@@ -262,39 +288,102 @@ if (simulation.value.err) {
               }
             
     }
+    res.set(ACTIONS_CORS_HEADERS).json(response).status(502)
 
-    res.set(ACTIONS_CORS_HEADERS).json(respons)
+  }
+  else if(customCode == 6002){
+    // already submitted word
+    process.stdout.write(`📋 6002: ${customCode}\n`);
+    response = {
+      type:"action" ,
+      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
+      title: 'Sordle',
+      description: 'word already submitted',
+      label: 'game started',
+      error:{message:"Not a valid world"},
+      links:{
+        actions:[
+          {
+            label: "submit",
+            href: req.baseUrl + "/sordle/answer",
+            parameters: [
+              {
+                name: "word",
+                label: "Laad"
+              }
+            ],
+            type: 'post'
+          }
+              ]
+            
+              }
+            
+    }
+    res.set(ACTIONS_CORS_HEADERS).json(response).status(502)
+
+  }
+    
+ }else{
+     response ={
+       type: "transaction",
+       transaction:uint8ArrayToBase64(transaction.serialize({requireAllSignatures:false, verifySignatures:false})),
+       message:"Game started",
+       
+       links:{
+        next: {
+             type:"post",
+             href:req.baseUrl+"/sordle/answer",
+             
+           }
+         
+        }
+     }
+
+     res.set(ACTIONS_CORS_HEADERS).json(response)
+    }
+  }
+     
+     process.stdout.write(`📋 answer  : ${JSON.stringify(body)}\n`);
+    
+     
+
+    
   })
   app.post("/sordle/uploa", async(req,res)=>{
 
     const body:ActionPostRequest = req.body;
     let account = new PublicKey(body.account)
 
-    process.stdout.write(`📋 upload: ${JSON.stringify(body)}\n`);
+   
     const transaction = new Transaction();
     transaction.feePayer = account
 
-    const recentBlockahs = (await connection.getLatestBlockhash()).blockhash
+    const latestBlockhash = await connection.getLatestBlockhash()
+    let signature = req.body.signature
+    const confirmation = await connection.confirmTransaction({
+      signature,
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    }, 'finalized');
+    
+   
+    const recentBlockahs = latestBlockhash.blockhash
     
 
   
     transaction.recentBlockhash = recentBlockahs
 
     let response:ActionPostResponse
-    const gameAccount = await program.account.game.fetch(gamePda(account));
-      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+   
     let image
     try {
-     // const gameAccount = await program.account.game.fetch(gamePda(account));
-      //const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
-      const status = getGameStatus(gameAccount);
-      const minutesPass = getMinutesSinceLastUpdate(gameAccount);
-      image = await updateGameSession(account)
-      process.stdout.write(`📋 upload image : ${image}\n`);
-      // response = {
-        
-      //   type:"message"
-      // }
+    
+    let gameAccount = await program.account.game.fetch(gamePda(account));
+   
+    let  status = getGameStatus(gameAccount);
+    const minutesPass = getMinutesSinceLastUpdate(gameAccount);
+    image =   await updateGameSession(account)
+
     } catch (error) {
       process.stdout.write(`📋 upload: ${error}\n`);
       console.log(error)
@@ -303,7 +392,7 @@ if (simulation.value.err) {
 
     let respons:ActionGetResponse = {
       type:"action" ,
-      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
+      icon: `https://storage.googleapis.com/sordle/images/${image}.svg`,
       title: 'Sordle',
       description: 'find a random word for this',
       label: 'game started',
@@ -318,18 +407,7 @@ if (simulation.value.err) {
                 name: "word",
                 label: "Laad"
               }
-            ]
-            // type: "message",
-            // parameters: [
-            //   {
-            //     name: "param",
-            //     label: "submit",
-            //     required: true
-            //   }
-            // ],
-            // href: req.baseUrl +"sordle/answer",
-            // label: 'david'
-            ,
+            ],
             type: 'post'
           }
               ]

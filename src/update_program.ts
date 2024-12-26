@@ -3,7 +3,7 @@ import { Address, AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import crypto from "crypto";
 import { IDL, Sordle } from "./sordle";
-import { admin, gameConfigPda, gamePda, initiator } from "./constants";
+import { admin, delay, gameConfigPda, gamePda, gameSessionPda, initiator } from "./constants";
 import { getJumbleAndHashedAnswer } from "./utils";
 import WebSocket from 'ws';
 import { uploader } from "./store";
@@ -120,16 +120,18 @@ export async function startGame(){
       return tx
 }
 
-export async function updateGameSession(initiator:PublicKey){
+export async function updateGameSession(account:PublicKey){
   
 
-   const gameAccount = await program.account.game.fetch(gamePda(initiator));
+  delay(10000)
+   const gameAccount = await program.account.game.fetch(gamePda(account));
    let  nonce = gameAccount.nonce;
  
   
+   console.log("Game account upload",JSON.stringify(gameAccount))
 
    console.log("Game initiator: ",gameAccount.initiator.toBase58())
-   console.log("Game nonce",nonce.toString())
+   console.log("Game nonce",gameAccount.nonce.toString())
    
     const  [gameSession] = PublicKey.findProgramAddressSync(
       [
@@ -140,6 +142,9 @@ export async function updateGameSession(initiator:PublicKey){
       program.programId
     );
 
+    const game_pda = gamePda(account)
+    const game_Account = await program.account.game.fetch(game_pda)
+    const session_pda = gameSessionPda(gameAccount.nonce,account)
     console.log("Game session Pda",gameSession.toBase58()) 
       
     let {jumble,hashed_valid} = getJumbleAndHashedAnswer()
@@ -157,19 +162,20 @@ export async function updateGameSession(initiator:PublicKey){
         .accounts({
           signer: admin.publicKey,
           // @ts-ignore
-          game: gamePda(initiator),
-          gameSession: gameSession,
+          game: game_pda,
+          gameSession: session_pda,
           config: gameConfigPda,
           systemProgram: SystemProgram.programId,
         })
         .signers([admin])
-        .rpc({commitment:"confirmed"});
+        .rpc({commitment:"finalized"});
         console.log("transaction hash: ",tx)
         return jumble
     } catch (error) {
         
         console.log("error uplaodaing");
         console.log(error)
+        
     }
 
     console.log("Done")
