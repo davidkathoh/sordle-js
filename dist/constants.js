@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.gamePda = exports.gameConfigPda = exports.signer = exports.initiator = exports.admin = void 0;
+exports.delay = exports.gameSessionPda = exports.gamePda = exports.gameConfigPda = exports.signer = exports.initiator = exports.admin = void 0;
 const anchor_1 = require("@coral-xyz/anchor");
 const web3_js_1 = require("@solana/web3.js");
 const sordle_1 = require("./sordle");
@@ -11,4 +11,21 @@ const connection = new web3_js_1.Connection("https://devnet.helius-rpc.com/?api-
 const provider = new anchor_1.AnchorProvider(connection, new anchor_1.Wallet(exports.admin), { commitment: "confirmed" });
 const program = new anchor_1.Program(sordle_1.IDL, provider);
 exports.gameConfigPda = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("game_config")], program.programId)[0];
-exports.gamePda = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("game"), exports.initiator.publicKey.toBuffer()], program.programId)[0];
+const gamePda = (initiator) => {
+    const [gamePda] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("game"), initiator.toBuffer()], program.programId);
+    return gamePda;
+};
+exports.gamePda = gamePda;
+const gameSessionPda = (nonce, initiator) => {
+    const [gameSession] = web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from("gamesession"),
+        initiator.toBuffer(),
+        Buffer.from(nonce.toArrayLike(Buffer, "be", 16))
+    ], program.programId);
+    return gameSession;
+};
+exports.gameSessionPda = gameSessionPda;
+const delay = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
+exports.delay = delay;

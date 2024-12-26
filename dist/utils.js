@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.uint8ArrayToBase64 = void 0;
 exports.getJumbleAndHashedAnswer = getJumbleAndHashedAnswer;
 exports.hash = hash;
 const englishWords_1 = require("./englishWords");
@@ -54,3 +55,7 @@ function hash(input) {
     hasher.update(input);
     return hasher.digest();
 }
+const uint8ArrayToBase64 = (uint8Array) => {
+    return Buffer.from(uint8Array).toString('base64');
+};
+exports.uint8ArrayToBase64 = uint8ArrayToBase64;

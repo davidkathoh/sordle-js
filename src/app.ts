@@ -15,7 +15,15 @@ app.use(express.json());
 //app.use(actionCorsMiddleware())
 app.use(express.urlencoded({ extended: true }));
 app.use(cors())
-
+// app.use((req, res, next) => {
+//   // Set headers to bypass ngrok warning
+//   res.setHeader('ngrok-skip-browser-warning', 'true');
+//   // Also setting some common security headers as best practice
+//   res.setHeader('Access-Control-Allow-Origin', '*');
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//   res.setHeader('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning, content-type');
+//   next();
+// });
 const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   Object.entries(ACTIONS_CORS_HEADERS).forEach(([key, value]) => {
     res.setHeader(key, value);
@@ -58,14 +66,14 @@ app.get('/actions.json', (req, res) => {
 // });
 
 // Define a simple route
-app.get('/sordle', (req: Request, res: Response) => {
+app.get('/', (req: Request, res: Response) => {
      const response:ActionGetResponse = {
        type:"action" ,
        icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
        title: 'Sordle',
        description: 'This a word geussing game',
        label: 'start a game',
-       error:{message:"error in the blink"}
+     
      }
 
     
@@ -183,7 +191,7 @@ console.log("post called");
     // });
   });
 
-  app.post("/sordle/answer", async(req,res)=>{
+  app.post("/answer", async(req,res)=>{
 
     
     const body = req.body;
@@ -247,79 +255,20 @@ console.log("post called");
 
   if(customCode == 6006){
     //game over show score
-    process.stdout.write(`📋 6006: ${customCode}\n`);
-     response = {
-      type:"action" ,
-      icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
-      title: 'Sordle',
-      description: 'This a word geussing game',
-      label: 'game started',
-      error:{message:"error in the blink"}
-    }
-    res.set(ACTIONS_CORS_HEADERS).json(response).status(402)
+    res.status(200).json({ error:  "Game over " });
   }else if(customCode == 6000){
 // not permitted
-process.stdout.write(`📋 6000: ${customCode}\n`);
+res.status(200).json({ error:  "This wallet is not permited " });
   }
   else if(customCode == 6001){
-    process.stdout.write(`📋 6001: ${customCode}\n`);
-     response = {
-      type:"action" ,
-      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
-      title: 'Sordle',
-      description: 'Not a valid world',
-      label: 'game started',
-      error:{message:"Not a valid world"},
-      links:{
-        actions:[
-          {
-            label: "submit",
-            href: req.baseUrl + "/sordle/answer",
-            parameters: [
-              {
-                name: "word",
-                label: "Laad"
-              }
-            ],
-            type: 'post'
-          }
-              ]
+    
             
-              }
-            
-    }
-    res.set(ACTIONS_CORS_HEADERS).json(response).status(502)
+    res.status(200).json({ error:  "Not a valid word, try again" });
 
   }
   else if(customCode == 6002){
     // already submitted word
-    process.stdout.write(`📋 6002: ${customCode}\n`);
-    response = {
-      type:"action" ,
-      icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
-      title: 'Sordle',
-      description: 'word already submitted',
-      label: 'game started',
-      error:{message:"Not a valid world"},
-      links:{
-        actions:[
-          {
-            label: "submit",
-            href: req.baseUrl + "/sordle/answer",
-            parameters: [
-              {
-                name: "word",
-                label: "Laad"
-              }
-            ],
-            type: 'post'
-          }
-              ]
-            
-              }
-            
-    }
-    res.set(ACTIONS_CORS_HEADERS).json(response).status(502)
+    res.status(200).json({ error:  "Already submitted, try another word" });
 
   }
     
@@ -349,7 +298,7 @@ process.stdout.write(`📋 6000: ${customCode}\n`);
 
     
   })
-  app.post("/sordle/uploa", async(req,res)=>{
+  app.post("/uploa", async(req,res)=>{
 
     const body:ActionPostRequest = req.body;
     let account = new PublicKey(body.account)
@@ -424,7 +373,7 @@ process.stdout.write(`📋 6000: ${customCode}\n`);
 
 
   })
-app.post("/sordle/admin", async (req, res) => {
+app.post("/admin", async (req, res) => {
     try {
       const tx = await setAdmin();
       res.json({ success: true, tx });
@@ -444,7 +393,7 @@ app.post("/sordle/admin", async (req, res) => {
   });
   
   // Route to update the game session
-  app.post("/sordle/update-game-session", async (req, res) => {
+  app.post("/update-game-session", async (req, res) => {
     try {
      // const tx = await updateGameSession(initiator.publicKey);
      // res.json({ success: true, tx });

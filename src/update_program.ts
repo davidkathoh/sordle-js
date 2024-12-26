@@ -122,8 +122,6 @@ export async function startGame(){
 
 export async function updateGameSession(account:PublicKey){
   
-
-  delay(10000)
    const gameAccount = await program.account.game.fetch(gamePda(account));
    let  nonce = gameAccount.nonce;
  
