@@ -14,28 +14,20 @@ const connection = new Connection("https://devnet.helius-rpc.com/?api-key=e30a8b
 app.use(express.json());
 //app.use(actionCorsMiddleware())
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
-// app.use((req, res, next) => {
-//   // Set headers to bypass ngrok warning
-//   res.setHeader('ngrok-skip-browser-warning', 'true');
-//   // Also setting some common security headers as best practice
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-//   res.setHeader('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning, content-type');
-//   next();
-// });
-const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  Object.entries(ACTIONS_CORS_HEADERS).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-};
+
+app.use(
+  cors({
+    origin: '*',
+    allowHeaders: ['Content-Type', 'Authorization', 'Accept-Encoding'],
+    allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+  }),
+);
 
   
+const headers = createActionHeaders({
+  chainId: "devnet", // or chainId: "devnet"
+  actionVersion: "1.6.6", // the desired spec version
+});
 
 
 
@@ -44,8 +36,8 @@ app.get('/actions.json', (req, res) => {
   const payload: ActionsJson = {
     rules: [
       {
-        pathPattern: "/sordle",
-        apiPath: "/sordle",
+        pathPattern: "/",
+        apiPath: "/",
       },
     ],
   };
@@ -54,7 +46,7 @@ app.get('/actions.json', (req, res) => {
   console.log("actions called")
 
   // Add the CORS headers and send JSON response
-  res.set(ACTIONS_CORS_HEADERS)
+  res.set(headers)
      .json(payload);
 });
 
@@ -71,24 +63,24 @@ app.get('/', (req: Request, res: Response) => {
        type:"action" ,
        icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
        title: 'Sordle',
-       description: 'This a word geussing game',
-       label: 'start a game',
+       description: 'Embark on an exciting journey to solve the most puzzling jumbled words! Challenge yourself, earn points, and conquer the leaderboard. Press Start Game to begin your adventure!',
+       label: 'start game',
      
      }
 
     
   
-     res.set(ACTIONS_CORS_HEADERS).send(response)
+     res.set(headers).send(response)
 
 });
-app.post("/answer",async(req:Request, res:Response)=>{
+// app.post("/answer",async(req:Request, res:Response)=>{
 
-  process.stdout.write(`📋 Pr: ${JSON.stringify(req.body)}\n`);
+//   process.stdout.write(`📋 Pr: ${JSON.stringify(req.body)}\n`);
   
-  res.send()
+//   res.send()
 
-})
-app.post("/sordle", async(req: Request, res: Response) => {
+// })
+app.post("/", async(req: Request, res: Response) => {
 
   
 console.log("post called");
@@ -143,7 +135,7 @@ console.log("post called");
       links:{
        next: {
             type:"post",
-            href:req.url+"/uploa",
+            href:req.url+"uploa",
             
           }
         
@@ -170,7 +162,7 @@ console.log("post called");
  
   //  res.set(ACTIONS_CORS_HEADERS).send(response)
    
-    res.set(ACTIONS_CORS_HEADERS).json(response)
+    res.set(headers).json(response)
   } catch (error) {
     throw error
   }
@@ -208,18 +200,18 @@ console.log("post called");
         type:"action" ,
         icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
         title: 'Sordle',
-        description: 'find a random word for this',
+        description: 'Hint: Pay attention to the above  scrambled letters.',
         label: 'game started',
         error:{message:"error in the blink"},
         links:{
           actions:[
             {
               label: "submit",
-              href: req.baseUrl + "/sordle/answer",
+              href: req.baseUrl + "/answer",
               parameters: [
                 {
                   name: "word",
-                  label: "Laad"
+                  label: "Type a correct word:"
                 }
               ]
              
@@ -231,7 +223,7 @@ console.log("post called");
                 }
               
       }
-      res.set(ACTIONS_CORS_HEADERS).json(response)
+      res.set(headers).json(response)
     }else{
       const word = body.data.word
       const gameAccount = await program.account.game.fetch(gamePda(account));
@@ -281,14 +273,14 @@ res.status(200).json({ error:  "This wallet is not permited " });
        links:{
         next: {
              type:"post",
-             href:req.baseUrl+"/sordle/answer",
+             href:req.baseUrl+"/answer",
              
            }
          
         }
      }
 
-     res.set(ACTIONS_CORS_HEADERS).json(response)
+     res.set(headers).json(response)
     }
   }
      
@@ -343,18 +335,18 @@ res.status(200).json({ error:  "This wallet is not permited " });
       type:"action" ,
       icon: `https://storage.googleapis.com/sordle/images/${image}.svg`,
       title: 'Sordle',
-      description: 'find a random word for this',
+      description: 'Hint: Pay attention to the above  scrambled letters.',
       label: 'game started',
       error:{message:"error in the blink"},
       links:{
         actions:[
           {
             label: "submit",
-            href: req.baseUrl + "/sordle/answer",
+            href: req.baseUrl + "/answer",
             parameters: [
               {
                 name: "word",
-                label: "Laad"
+                label: "Type a correct word:"
               }
             ],
             type: 'post'
@@ -369,7 +361,7 @@ res.status(200).json({ error:  "This wallet is not permited " });
  
   //  res.set(ACTIONS_CORS_HEADERS).send(response)
    
-    res.set(ACTIONS_CORS_HEADERS).json(respons)
+    res.set(headers).json(respons)
 
 
   })
@@ -383,7 +375,7 @@ app.post("/admin", async (req, res) => {
   });
   
   // Route to start the game
-  app.post("/sordle/start-game", async (req, res) => {
+  app.post("/start-game", async (req, res) => {
     try {
       const tx = await startGame();
       res.json({ success: true, tx });
@@ -404,7 +396,7 @@ app.post("/admin", async (req, res) => {
   });
   
   // Route to submit a player's answer
-  app.post("/sordle/play", async (req, res) => {
+  app.post("/play", async (req, res) => {
     const { answer } = req.body;
     try {
       //const tx = await play(answer);

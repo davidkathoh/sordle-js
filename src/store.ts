@@ -1,4 +1,5 @@
 import { Storage, Bucket, File } from '@google-cloud/storage';
+import * as path from 'path';
 
 interface UploadResult {
   filename: string;
@@ -133,7 +134,7 @@ class CloudStorageUploader {
 
 // Usage
 export const uploader = new CloudStorageUploader(
-  '/Users/davidkathoh/Sideproject/jumble_image/key.json',
+    path.resolve(process.cwd(), 'key.json'),
   'sordle'
 );
 
