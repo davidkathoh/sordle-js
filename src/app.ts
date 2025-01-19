@@ -50,14 +50,7 @@ app.get('/actions.json', (req, res) => {
      .json(payload);
 });
 
-// app.options('/actions.json', (req, res) => {
 
-//   console.log("opions")
-//   res.set(ACTIONS_CORS_HEADERS)
-//      .sendStatus(200);
-// });
-
-// Define a simple route
 app.get('/', (req: Request, res: Response) => {
      const response:ActionGetResponse = {
        type:"action" ,
@@ -143,12 +136,7 @@ console.log("post called");
           
         }
        
-      
-
-    
-  // } catch (error) {
-  //     console.log(error)
-  // }
+  
    let respons:ActionGetResponse = {
       type:"action" ,
       icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
@@ -166,21 +154,7 @@ console.log("post called");
   } catch (error) {
     throw error
   }
-    // const userPubkey = receivedData.account;
-    // const response = {
-    //   transaction: "",
-    //   message: `hello ${userPubkey}`,
-     
-    // }
-    // console.log(response)
-    // // Log the received data to the console
-    // console.log("Received POST data:", receivedData);
-     
-    // Send a response back to the client
-    // res.json({
-    //   message: "Data received successfully",
-    //   receivedData,
-    // });
+   
   });
 
   app.post("/answer", async(req,res)=>{
@@ -246,8 +220,12 @@ console.log("post called");
   const customCode = JSON.parse(JSON.stringify(simulation.value)).err?.InstructionError[1]?.Custom;
 
   if(customCode == 6006){
+
+
     //game over show score
     res.status(200).json({ error:  "Game over " });
+
+
   }else if(customCode == 6000){
 // not permitted
 res.status(200).json({ error:  "This wallet is not permited " });
@@ -359,7 +337,6 @@ res.status(200).json({ error:  "This wallet is not permited " });
 
     console.log("hrllo cathoh")
  
-  //  res.set(ACTIONS_CORS_HEADERS).send(response)
    
     res.set(headers).json(respons)
 
@@ -406,11 +383,7 @@ app.post("/admin", async (req, res) => {
     }
   });
   
-  // Event Listener to listen for game events (startGameEvent)
- 
-   //  listen();
-      
-
+  
 
 // Start the server
 app.listen(PORT,'0.0.0.0', () => {
