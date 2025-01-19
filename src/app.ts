@@ -137,15 +137,6 @@ console.log("post called");
         }
        
   
-   let respons:ActionGetResponse = {
-      type:"action" ,
-      icon: 'https://storage.googleapis.com/sordle/images/ikaiwk.svg',
-      title: 'Sordle',
-      description: 'This a word geussing game',
-      label: 'game started',
-      error:{message:"error in the blink"}
-    }
-
     console.log("hrllo cathoh")
  
   //  res.set(ACTIONS_CORS_HEADERS).send(response)
