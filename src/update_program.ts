@@ -45,7 +45,7 @@ export async function ixStartGame(initiator:PublicKey){
  // process.stdout.write(`📋 Program ID: ${program.programId.toString()}\n`);
  
   return await program.methods
-  .startGame()
+  .start_game()
   .accounts({
     player: initiator,
     // @ts-ignore
@@ -82,7 +82,7 @@ export async function ixUpdateGameSession(nonce,initiator:PublicKey){
  
 
        const tx = await program.methods
-       .uploadWord({
+       .upload_word({
          jumbleWorld:jumble,
          validWords:hashed_valid
        })
@@ -106,7 +106,7 @@ export async function ixUpdateGameSession(nonce,initiator:PublicKey){
 export async function startGame(){
 
     const tx = await program.methods
-      .startGame()
+      .start_game()
       .accounts({
         player: initiator.publicKey,
         // @ts-ignore
@@ -122,7 +122,7 @@ export async function startGame(){
 
 export async function updateGameSession(account:PublicKey){
   
-   const gameAccount = await program.account.game.fetch(gamePda(account));
+   const gameAccount = await program.account.Game.fetch(gamePda(account));
    let  nonce = gameAccount.nonce;
  
   
@@ -141,7 +141,7 @@ export async function updateGameSession(account:PublicKey){
     );
 
     const game_pda = gamePda(account)
-    const game_Account = await program.account.game.fetch(game_pda)
+    const game_Account = await program.account.Game.fetch(game_pda)
     const session_pda = gameSessionPda(gameAccount.nonce,account)
     console.log("Game session Pda",gameSession.toBase58()) 
       
@@ -153,7 +153,7 @@ export async function updateGameSession(account:PublicKey){
 
     try {
         const tx = await program.methods
-        .uploadWord({
+        .upload_word({
           jumbleWorld:jumble,
           validWords:hashed_valid
         })
@@ -184,7 +184,7 @@ export async function updateGameSession(account:PublicKey){
 export async function play(initiator:PublicKey,answer: string){
 
     
-    const gameAccount = await program.account.game.fetch(gamePda(initiator));
+    const gameAccount = await program.account.Game.fetch(gamePda(initiator));
     let nonce = gameAccount.nonce;
 
     const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
@@ -233,26 +233,26 @@ export async function play(initiator:PublicKey,answer: string){
 export async function listen(){
     
   
-    const eventListener = program.addEventListener(
-        "startGameEvent", 
-        async (event, slot) => {
+    // const eventListener = program.addEventListener(
+    //     "startGameEvent", 
+    //     async (event, slot) => {
 
             
-            console.log("event called slot: ",slot)
-            const currentTime = new Date();
-            console.log(`Hello World! Message received at: ${currentTime.toISOString()}`);
-            try {
+    //         console.log("event called slot: ",slot)
+    //         const currentTime = new Date();
+    //         console.log(`Hello World! Message received at: ${currentTime.toISOString()}`);
+    //         try {
                 
-                //await updateGameSession(event.nonce,event.player)
+    //             //await updateGameSession(event.nonce,event.player)
                 
-              } catch (error:any) {
-                //res.status(500).json({ success: false, error:  });
-                console.log(error.message)
-              }
+    //           } catch (error:any) {
+    //             //res.status(500).json({ success: false, error:  });
+    //             console.log(error.message)
+    //           }
           
-        }
-      );
-      console.log("Listener",eventListener)
+    //     }
+    //   );
+    //   console.log("Listener",eventListener)
 }
 
 

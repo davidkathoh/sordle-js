@@ -105,7 +105,7 @@ console.log("post called");
       process.stdout.write(`📋 start: accountInfo ===  null`);
      // transaction.add(await ixUpdateGameSession(0,account))
     }else{
-      const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameAccount = await program.account.Game.fetch(gamePda(account));
       const status = getGameStatus(gameAccount);
       const minutesPass = getMinutesSinceLastUpdate(gameAccount);
       process.stdout.write(`📋 start: ${JSON.stringify(gameAccount)}`);
@@ -157,13 +157,13 @@ console.log("post called");
 
     let response;
     if("signature" in req.body){
-      const gameAccount = await program.account.game.fetch(gamePda(account));
-      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      const gameAccount = await program.account.Game.fetch(gamePda(account));
+      const gameSession = await program.account.GameSession.fetch(gameSessionPda(gameAccount.nonce,account))
       process.stdout.write(`📋 answer  : valid \n`);
 
        response= {
         type:"action" ,
-        icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
+        icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumble_world}.svg`,
         title: 'Sordle',
         description: 'Hint: Pay attention to the above  scrambled letters.',
         label: 'game started',
@@ -191,8 +191,8 @@ console.log("post called");
       res.set(headers).json(response)
     }else{
       const word = body.data.word
-      const gameAccount = await program.account.game.fetch(gamePda(account));
-      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      const gameAccount = await program.account.Game.fetch(gamePda(account));
+      const gameSession = await program.account.GameSession.fetch(gameSessionPda(gameAccount.nonce,account))
       const transaction = new Transaction();
       transaction.feePayer = account
   
@@ -214,6 +214,19 @@ console.log("post called");
 
 
     //game over show score
+    // get scored,
+   // console.log(JSON.stringify(gameSession))
+     process.stdout.write(`📋: ${JSON.stringify(gameSession)}\n`);
+
+    const response:ActionGetResponse = {
+      type:"action" ,
+      icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
+      title: 'Sordle',
+      description: 'Embark on an exciting journey to solve the most puzzling jumbled words! Challenge yourself, earn points, and conquer the leaderboard. Press Start Game to begin your adventure!',
+      label: 'start game',
+    
+    }
+
     res.status(200).json({ error:  "Game over " });
 
 
@@ -288,7 +301,7 @@ res.status(200).json({ error:  "This wallet is not permited " });
     let image
     try {
     
-    let gameAccount = await program.account.game.fetch(gamePda(account));
+    let gameAccount = await program.account.Game.fetch(gamePda(account));
    
     let  status = getGameStatus(gameAccount);
     const minutesPass = getMinutesSinceLastUpdate(gameAccount);
