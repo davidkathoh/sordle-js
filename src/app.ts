@@ -12,7 +12,7 @@ const PORT = 3000;
 
 const connection = new Connection("https://devnet.helius-rpc.com/?api-key=e30a8b1e-1deb-4f7a-89bf-60b149f39320");
 app.use(express.json());
-//app.use(actionCorsMiddleware())
+//.use(actionCorsMiddleware({}));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
@@ -84,28 +84,33 @@ console.log("post called");
 
     const transaction = new Transaction();
     transaction.feePayer = account
-
     const recentBlockahs = (await connection.getLatestBlockhash()).blockhash
     
-
+   
   
     transaction.recentBlockhash = recentBlockahs
 
     let response:ActionPostResponse
    // try {
       
-   
     
     const accountInfo = await  connection.getAccountInfo(gamePda(account))
+   
     if(accountInfo ===  null){
+
+      //set admin and initialiaze the pda
+      process.stdout.write(`📋 starting \n`);
+      await setAdmin()
+      process.stdout.write(`📋 starting \n`);
       // start a game
       transaction.add(
         await ixStartGame(account)
       )
-      process.stdout.write(`📋 start: accountInfo ===  null`);
+      process.stdout.write(`📋 start: accountInfo ===  null\n`);
      // transaction.add(await ixUpdateGameSession(0,account))
     }else{
-      const gameAccount = await program.account.Game.fetch(gamePda(account));
+     
+      const gameAccount = await program.account.game.fetch(gamePda(account));
       const status = getGameStatus(gameAccount);
       const minutesPass = getMinutesSinceLastUpdate(gameAccount);
       process.stdout.write(`📋 start: ${JSON.stringify(gameAccount)}`);
@@ -143,27 +148,28 @@ console.log("post called");
    
     res.set(headers).json(response)
   } catch (error) {
+   
     throw error
   }
    
   });
 
   app.post("/answer", async(req,res)=>{
-
     
     const body = req.body;
     process.stdout.write(`📋 answer  : ${JSON.stringify(body)}\n`);
+    
     const account = new PublicKey(body.account)
 
     let response;
     if("signature" in req.body){
-      const gameAccount = await program.account.Game.fetch(gamePda(account));
-      const gameSession = await program.account.GameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
       process.stdout.write(`📋 answer  : valid \n`);
 
        response= {
         type:"action" ,
-        icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumble_world}.svg`,
+        icon: `https://storage.googleapis.com/sordle/images/${gameSession.jumbleWorld}.svg`,
         title: 'Sordle',
         description: 'Hint: Pay attention to the above  scrambled letters.',
         label: 'game started',
@@ -190,9 +196,11 @@ console.log("post called");
       }
       res.set(headers).json(response)
     }else{
+
+      process.stdout.write(`📋 answer  : else clause\n`);
       const word = body.data.word
-      const gameAccount = await program.account.Game.fetch(gamePda(account));
-      const gameSession = await program.account.GameSession.fetch(gameSessionPda(gameAccount.nonce,account))
+      const gameAccount = await program.account.game.fetch(gamePda(account));
+      const gameSession = await program.account.gameSession.fetch(gameSessionPda(gameAccount.nonce,account))
       const transaction = new Transaction();
       transaction.feePayer = account
   
@@ -203,10 +211,13 @@ console.log("post called");
       transaction.recentBlockhash = recentBlockahs
  
      let tx = await play(account, word)
+
+     process.stdout.write(`📋 answer  : ${JSON.stringify(tx)}\n`);
  
      transaction.add(tx)
      
      const simulation = await connection.simulateTransaction(transaction);
+     process.stdout.write(`📋 transaction simulation  : ${JSON.stringify(simulation.value)}\n`);
  if (simulation.value.err) {
   const customCode = JSON.parse(JSON.stringify(simulation.value)).err?.InstructionError[1]?.Custom;
 
@@ -244,9 +255,13 @@ res.status(200).json({ error:  "This wallet is not permited " });
     // already submitted word
     res.status(200).json({ error:  "Already submitted, try another word" });
 
+  }else{
+    res.status(200).json({ error:  "Unexpected error when submitting the transaction" });
+
   }
     
  }else{
+  process.stdout.write(`📋 answer  : signing transaction`);
      response ={
        type: "transaction",
        transaction:uint8ArrayToBase64(transaction.serialize({requireAllSignatures:false, verifySignatures:false})),
@@ -256,7 +271,7 @@ res.status(200).json({ error:  "This wallet is not permited " });
         next: {
              type:"post",
              href:req.baseUrl+"/answer",
-             
+            
            }
          
         }
@@ -266,7 +281,7 @@ res.status(200).json({ error:  "This wallet is not permited " });
     }
   }
      
-     process.stdout.write(`📋 answer  : ${JSON.stringify(body)}\n`);
+    
     
      
 
@@ -301,7 +316,7 @@ res.status(200).json({ error:  "This wallet is not permited " });
     let image
     try {
     
-    let gameAccount = await program.account.Game.fetch(gamePda(account));
+    let gameAccount = await program.account.game.fetch(gamePda(account));
    
     let  status = getGameStatus(gameAccount);
     const minutesPass = getMinutesSinceLastUpdate(gameAccount);

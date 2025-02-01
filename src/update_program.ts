@@ -28,6 +28,7 @@ async function setup() {
 
 export async function setAdmin() {
     
+  process.stdout.write(`📋 ${program.programId} \n`);
     let tx = await  program.methods
     .initialize()
     .accounts({
@@ -45,7 +46,7 @@ export async function ixStartGame(initiator:PublicKey){
  // process.stdout.write(`📋 Program ID: ${program.programId.toString()}\n`);
  
   return await program.methods
-  .start_game()
+  .startGame()
   .accounts({
     player: initiator,
     // @ts-ignore
@@ -82,7 +83,7 @@ export async function ixUpdateGameSession(nonce,initiator:PublicKey){
  
 
        const tx = await program.methods
-       .upload_word({
+       .uploadWord({
          jumbleWorld:jumble,
          validWords:hashed_valid
        })
@@ -106,7 +107,7 @@ export async function ixUpdateGameSession(nonce,initiator:PublicKey){
 export async function startGame(){
 
     const tx = await program.methods
-      .start_game()
+      .startGame()
       .accounts({
         player: initiator.publicKey,
         // @ts-ignore
@@ -122,7 +123,7 @@ export async function startGame(){
 
 export async function updateGameSession(account:PublicKey){
   
-   const gameAccount = await program.account.Game.fetch(gamePda(account));
+   const gameAccount = await program.account.game.fetch(gamePda(account));
    let  nonce = gameAccount.nonce;
  
   
@@ -141,7 +142,7 @@ export async function updateGameSession(account:PublicKey){
     );
 
     const game_pda = gamePda(account)
-    const game_Account = await program.account.Game.fetch(game_pda)
+    const game_Account = await program.account.game.fetch(game_pda)
     const session_pda = gameSessionPda(gameAccount.nonce,account)
     console.log("Game session Pda",gameSession.toBase58()) 
       
@@ -153,7 +154,7 @@ export async function updateGameSession(account:PublicKey){
 
     try {
         const tx = await program.methods
-        .upload_word({
+        .uploadWord({
           jumbleWorld:jumble,
           validWords:hashed_valid
         })
@@ -184,7 +185,7 @@ export async function updateGameSession(account:PublicKey){
 export async function play(initiator:PublicKey,answer: string){
 
     
-    const gameAccount = await program.account.Game.fetch(gamePda(initiator));
+    const gameAccount = await program.account.game.fetch(gamePda(initiator));
     let nonce = gameAccount.nonce;
 
     const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
@@ -217,9 +218,10 @@ export async function play(initiator:PublicKey,answer: string){
     }).instruction()
     // .signers([initiator])
     // .rpc({commitment:"confirmed"});
-    
+    process.stdout.write(`📋 answer  : no error`);
     return tx
 } catch (error) {
+  process.stdout.write(`📋 answer  : error`);
       console.log(error)  
 
 }
