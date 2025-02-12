@@ -7,7 +7,7 @@
  * IDL can be found at `target/idl/sordle.json`.
  */
 export type Sordle = {
-  "address": "4BknspXaHoPXU3NY4iiWB7c2yky8vZXHQL6ZK3K7CJUd",
+  "address": "3cvoKTnEDjhexN1KdxbY4K7CfRnRTeVnt3omGc7y52XR",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
@@ -634,7 +634,7 @@ export type Sordle = {
 };
 
 export const IDL =  {
-  "address": "4BknspXaHoPXU3NY4iiWB7c2yky8vZXHQL6ZK3K7CJUd",
+  "address": "3cvoKTnEDjhexN1KdxbY4K7CfRnRTeVnt3omGc7y52XR",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
