@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { console } from 'inspector';
-import { getJumbleAndHashedAnswer, hash, uint8ArrayToBase64 } from './utils';
+import { decodeAnswer, GameScore,  getJumbleAndHashedAnswer, hash, uint8ArrayToBase64 } from './utils';
 import { setAdmin, startGame, updateGameSession, play, listen, ixStartGame, program, ixUpdateGameSession } from './update_program';
 import { actionCorsMiddleware, ActionGetResponse, ActionPostRequest, ActionPostResponse,ACTIONS_CORS_HEADERS, ActionsJson, createPostResponse, createActionHeaders} from '@solana/actions';
 import { clusterApiUrl, ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, TransactionStatus } from '@solana/web3.js';
@@ -100,7 +100,12 @@ console.log("post called");
 
       //set admin and initialiaze the pda
       process.stdout.write(`📋 starting \n`);
-      await setAdmin()
+      try{
+        await setAdmin()
+      }catch(e){
+        process.stdout.write(`${e} `);
+      }
+      
       process.stdout.write(`📋 starting \n`);
       // start a game
       transaction.add(
@@ -227,7 +232,21 @@ console.log("post called");
     //game over show score
     // get scored,
    // console.log(JSON.stringify(gameSession))
-     process.stdout.write(`📋: ${JSON.stringify(gameSession)}\n`);
+
+   let scores  = gameSession.gameScores as unknown as GameScore[];
+   let answers = gameSession.gameScores.find(score => score.player = account)?.answers
+   .map(decodeAnswer) || [];//flatMap(score => score.answers.map(decodeAnswer));
+   process.stdout.write(`\n📋: ${answers}\n`);
+
+   
+   let playerScore = gameSession.gameScores.find(score => score.player === account) as GameScore;
+    if (playerScore) {
+    let playerAnswers = playerScore.answers.map(decodeAnswer);
+
+     //process.stdout.write(`\n📋: ${answers}\n`);
+    }
+
+    
 
     const response:ActionGetResponse = {
       type:"action" ,
