@@ -245,19 +245,36 @@ console.log("post called");
 
      //process.stdout.write(`\n📋: ${answers}\n`);
     }
-
-    
-
-    const response:ActionGetResponse = {
+    let display:ActionGetResponse = {
+      type:"action" ,
+      icon: `https://storage.googleapis.com/sordle/images/jumble.svg`,
+      title: 'Your score',
+      description: `descrion game`,
+      label: 'game started',
+      error:{message:"error in the blink"},
+      links:{
+        actions:[
+          {
+            label: "Start a new game",
+            href: req.baseUrl ,
+            type: 'post'
+          }
+              ]
+            
+              }
+            
+            }
+    const resp:ActionGetResponse = {
       type:"action" ,
       icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
-      title: 'Sordle',
-      description: 'Embark on an exciting journey to solve the most puzzling jumbled words! Challenge yourself, earn points, and conquer the leaderboard. Press Start Game to begin your adventure!',
-      label: 'start game',
+      title: 'Your score',
+      description: `decs`,
+      label: 'start new  game',
     
     }
-
-    res.status(200).json({ error:  "Game over " });
+   // ${answers.map((a, i) => [i+1, a].join('. ')).join('\n')}
+   // res.status(200).json({ error:  "Game over " });
+   res.status(200).json(display);
 
 
   }else if(customCode == 6000){
