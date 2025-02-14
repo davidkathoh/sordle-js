@@ -7,7 +7,7 @@
  * IDL can be found at `target/idl/sordle.json`.
  */
 export type Sordle = {
-  "address": "3cvoKTnEDjhexN1KdxbY4K7CfRnRTeVnt3omGc7y52XR",
+  "address": "2pkPZJchxcKuTNWibWFWA3YUZ3ukhKdHuP8eggUCe65k",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
@@ -232,6 +232,110 @@ export type Sordle = {
               {
                 "kind": "account",
                 "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "stop",
+      "discriminator": [
+        42,
+        133,
+        32,
+        60,
+        171,
+        253,
+        184,
+        155
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "gameSession",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "game.nonce",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
               }
             ]
           }
@@ -634,7 +738,7 @@ export type Sordle = {
 };
 
 export const IDL =  {
-  "address": "3cvoKTnEDjhexN1KdxbY4K7CfRnRTeVnt3omGc7y52XR",
+  "address": "2pkPZJchxcKuTNWibWFWA3YUZ3ukhKdHuP8eggUCe65k",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
@@ -859,6 +963,110 @@ export const IDL =  {
               {
                 "kind": "account",
                 "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "stop",
+      "discriminator": [
+        42,
+        133,
+        32,
+        60,
+        171,
+        253,
+        184,
+        155
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "gameSession",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "game.nonce",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
               }
             ]
           }

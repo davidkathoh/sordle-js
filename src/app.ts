@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { console } from 'inspector';
 import { decodeAnswer, GameScore,  getJumbleAndHashedAnswer, hash, uint8ArrayToBase64 } from './utils';
-import { setAdmin, startGame, updateGameSession, play, listen, ixStartGame, program, ixUpdateGameSession } from './update_program';
+import { setAdmin, startGame, updateGameSession, play, stop, ixStartGame, program, ixUpdateGameSession } from './update_program';
 import { actionCorsMiddleware, ActionGetResponse, ActionPostRequest, ActionPostResponse,ACTIONS_CORS_HEADERS, ActionsJson, createPostResponse, createActionHeaders} from '@solana/actions';
 import { clusterApiUrl, ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, TransactionStatus } from '@solana/web3.js';
 import { admin, delay, gamePda, gameSessionPda, initiator } from './constants';
@@ -165,6 +165,7 @@ console.log("post called");
     process.stdout.write(`📋 answer  : ${JSON.stringify(body)}\n`);
     
     const account = new PublicKey(body.account)
+    
 
     let response;
     if("signature" in req.body){
@@ -211,20 +212,19 @@ console.log("post called");
   
       const recentBlockahs = (await connection.getLatestBlockhash()).blockhash
       
-  
-    
       transaction.recentBlockhash = recentBlockahs
  
      let tx = await play(account, word)
 
-     process.stdout.write(`📋 answer  : ${JSON.stringify(tx)}\n`);
+     process.stdout.write(`📋 transaction play add for simulation\n`);
  
      transaction.add(tx)
      
      const simulation = await connection.simulateTransaction(transaction);
-     process.stdout.write(`📋 transaction simulation  : ${JSON.stringify(simulation.value)}\n`);
+    // process.stdout.write(`📋 transaction simulation  : ${JSON.stringify(simulation.value)}\n`);
  if (simulation.value.err) {
   const customCode = JSON.parse(JSON.stringify(simulation.value)).err?.InstructionError[1]?.Custom;
+
 
   if(customCode == 6006){
 
@@ -232,11 +232,16 @@ console.log("post called");
     //game over show score
     // get scored,
    // console.log(JSON.stringify(gameSession))
-
+   process.stdout.write(`Game over`);
+   let t = await stop(account);
+   transaction.instructions[0] = t
+   //transaction.add(t) 
+   process.stdout.write(`Answers\n📋: ${transaction}\n`);
+   
    let scores  = gameSession.gameScores as unknown as GameScore[];
    let answers = gameSession.gameScores.find(score => score.player = account)?.answers
    .map(decodeAnswer) || [];//flatMap(score => score.answers.map(decodeAnswer));
-   process.stdout.write(`\n📋: ${answers}\n`);
+  
 
    
    let playerScore = gameSession.gameScores.find(score => score.player === account) as GameScore;
@@ -245,33 +250,26 @@ console.log("post called");
 
      //process.stdout.write(`\n📋: ${answers}\n`);
     }
-    let display:ActionGetResponse = {
-      type:"action" ,
-      icon: `https://storage.googleapis.com/sordle/images/jumble.svg`,
-      title: 'Your score',
-      description: `descrion game`,
-      label: 'game started',
-      error:{message:"error in the blink"},
-      links:{
-        actions:[
-          {
-            label: "Start a new game",
-            href: req.baseUrl ,
-            type: 'post'
-          }
-              ]
-            
+    let display:ActionPostResponse = {
+      type: "transaction",
+      transaction:uint8ArrayToBase64(transaction.serialize({requireAllSignatures:false, verifySignatures:false})),
+      message: "Game started",
+      links: {
+              next: {
+                   type:"inline",
+                   action: {
+                     type: "action",
+                     icon: "https://storage.googleapis.com/sordle/images/jumble.svg",
+                     title: "Action Title",
+                     description: "Action Description",
+                     label: "Action Label"
+                   }
+                 }
               }
-            
-            }
-    const resp:ActionGetResponse = {
-      type:"action" ,
-      icon: 'https://storage.googleapis.com/sordle/images/jumble.svg',
-      title: 'Your score',
-      description: `decs`,
-      label: 'start new  game',
-    
-    }
+           }
+
+   // res.set(headers).json(response)
+  
    // ${answers.map((a, i) => [i+1, a].join('. ')).join('\n')}
    // res.status(200).json({ error:  "Game over " });
    res.status(200).json(display);
@@ -390,12 +388,37 @@ res.status(200).json({ error:  "This wallet is not permited " });
             
     }
 
-    console.log("hrllo cathoh")
+    
  
    
     res.set(headers).json(respons)
 
 
+  })
+
+
+  app.post("/stop", async(req,res) =>{
+    let respons:ActionGetResponse = {
+      type:"action" ,
+      icon: `https://storage.googleapis.com/sordle/images/jumble.svg`,
+      title: 'Sordle',
+      description: 'Hint: Pay attention to the above  scrambled letters.',
+      label: 'game started',
+      error:{message:"error in the blink"},
+      links:{
+        actions:[
+          {
+            label: "Start game",
+            href: req.baseUrl + "/answer",
+            type: 'post'
+          }
+              ]
+            
+              }
+            
+    }
+
+    res.set(headers).json(respons)
   })
 app.post("/admin", async (req, res) => {
     try {

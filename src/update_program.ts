@@ -121,6 +121,8 @@ export async function startGame(){
       return tx
 }
 
+
+
 export async function updateGameSession(account:PublicKey){
   
    const gameAccount = await program.account.game.fetch(gamePda(account));
@@ -182,6 +184,43 @@ export async function updateGameSession(account:PublicKey){
    
 }
 
+export async function stop(initiator:PublicKey){
+
+  const gameAccount = await program.account.game.fetch(gamePda(initiator));
+    let nonce = gameAccount.nonce;
+
+    const  [gameSessionPda] = await PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("gamesession"), 
+          initiator.toBuffer(), 
+          Buffer.from(nonce.toArrayLike(Buffer,"be", 16))
+        ],
+        program.programId
+      );
+      try{
+  const tx = await program.methods.stop()
+  .accounts({
+    signer: initiator,
+       // @ts-ignore
+      game: gamePda(initiator),
+     
+      gameSession: gameSessionPda,
+      config: gameConfigPda,
+      systemProgram: SystemProgram.programId,
+   
+ 
+    
+  }).instruction();
+
+  return tx
+
+} catch (error) {
+  process.stdout.write(`📋 answer  : ${error}`);
+      console.log(error)  
+
+}
+
+}
 export async function play(initiator:PublicKey,answer: string){
 
     
@@ -216,9 +255,7 @@ export async function play(initiator:PublicKey,answer: string){
       config: gameConfigPda,
       systemProgram: SystemProgram.programId,
     }).instruction()
-    // .signers([initiator])
-    // .rpc({commitment:"confirmed"});
-    process.stdout.write(`📋 answer  : no error`);
+  
     return tx
 } catch (error) {
   process.stdout.write(`📋 answer  : error`);
@@ -235,6 +272,9 @@ export async function play(initiator:PublicKey,answer: string){
 export async function listen(){
     
   
+  
+  
+
     // const eventListener = program.addEventListener(
     //     "startGameEvent", 
     //     async (event, slot) => {
