@@ -259,10 +259,20 @@ console.log("post called");
                    type:"inline",
                    action: {
                      type: "action",
-                     icon: "https://storage.googleapis.com/sordle/images/jumble.svg",
-                     title: "Action Title",
-                     description: "Action Description",
-                     label: "Action Label"
+                     icon: "https://storage.googleapis.com/sordle/images/game-over.svg",
+                     title: "Game over",
+                     description: `Valid word you guessed:\n${answers.map((a, i) => [i+1, a].join('. ')).join('\n')}`,
+                     label: "Start new game",
+                     links:{
+                      actions:[
+                        {
+                          label: "Start new game",
+                          href: req.baseUrl,
+                          type: 'post'
+                        }
+                            ]
+                          
+                            }
                    }
                  }
               }
