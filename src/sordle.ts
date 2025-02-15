@@ -7,7 +7,7 @@
  * IDL can be found at `target/idl/sordle.json`.
  */
 export type Sordle = {
-  "address": "5eCaxLpmyEFNrqToYJFJzUJqFkZKvoBuRasi2mPa1pdY",
+  "address": "2pkPZJchxcKuTNWibWFWA3YUZ3ukhKdHuP8eggUCe65k",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
@@ -244,6 +244,110 @@ export type Sordle = {
       "args": []
     },
     {
+      "name": "stop",
+      "discriminator": [
+        42,
+        133,
+        32,
+        60,
+        171,
+        253,
+        184,
+        155
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "gameSession",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "game.nonce",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "uploadWord",
       "discriminator": [
         115,
@@ -443,6 +547,11 @@ export type Sordle = {
       "code": 6005,
       "name": "maxPlayersReached",
       "msg": "Maximum number of players reached"
+    },
+    {
+      "code": 6006,
+      "name": "gameOver",
+      "msg": "Game over or not yet started"
     }
   ],
   "types": [
@@ -506,6 +615,17 @@ export type Sordle = {
           {
             "name": "score",
             "type": "u8"
+          },
+          {
+            "name": "answers",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  6
+                ]
+              }
+            }
           }
         ]
       }
@@ -616,8 +736,9 @@ export type Sordle = {
     }
   ]
 };
-export const IDL = {
-  "address": "5eCaxLpmyEFNrqToYJFJzUJqFkZKvoBuRasi2mPa1pdY",
+
+export const IDL =  {
+  "address": "2pkPZJchxcKuTNWibWFWA3YUZ3ukhKdHuP8eggUCe65k",
   "metadata": {
     "name": "sordle",
     "version": "0.1.0",
@@ -668,7 +789,7 @@ export const IDL = {
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -709,13 +830,13 @@ export const IDL = {
               {
                 "kind": "account",
                 "path": "game.initiator",
-                "account": "Game"
+                "account": "game"
               }
             ]
           }
         },
         {
-          "name": "game_session",
+          "name": "gameSession",
           "writable": true,
           "pda": {
             "seeds": [
@@ -738,12 +859,12 @@ export const IDL = {
               {
                 "kind": "account",
                 "path": "game.initiator",
-                "account": "Game"
+                "account": "game"
               },
               {
                 "kind": "account",
                 "path": "game.nonce",
-                "account": "Game"
+                "account": "game"
               }
             ]
           }
@@ -772,7 +893,7 @@ export const IDL = {
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -784,7 +905,7 @@ export const IDL = {
       ]
     },
     {
-      "name": "start_game",
+      "name": "startGame",
       "discriminator": [
         249,
         47,
@@ -847,14 +968,118 @@ export const IDL = {
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "upload_word",
+      "name": "stop",
+      "discriminator": [
+        42,
+        133,
+        32,
+        60,
+        171,
+        253,
+        184,
+        155
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "gameSession",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.initiator",
+                "account": "game"
+              },
+              {
+                "kind": "account",
+                "path": "game.nonce",
+                "account": "game"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "uploadWord",
       "discriminator": [
         115,
         21,
@@ -888,13 +1113,13 @@ export const IDL = {
               {
                 "kind": "account",
                 "path": "game.initiator",
-                "account": "Game"
+                "account": "game"
               }
             ]
           }
         },
         {
-          "name": "game_session",
+          "name": "gameSession",
           "writable": true,
           "pda": {
             "seeds": [
@@ -917,12 +1142,12 @@ export const IDL = {
               {
                 "kind": "account",
                 "path": "game.initiator",
-                "account": "Game"
+                "account": "game"
               },
               {
                 "kind": "account",
                 "path": "game.nonce",
-                "account": "Game"
+                "account": "game"
               }
             ]
           }
@@ -951,7 +1176,7 @@ export const IDL = {
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -960,7 +1185,7 @@ export const IDL = {
           "name": "params",
           "type": {
             "defined": {
-              "name": "UploadParams"
+              "name": "uploadParams"
             }
           }
         }
@@ -969,7 +1194,7 @@ export const IDL = {
   ],
   "accounts": [
     {
-      "name": "Config",
+      "name": "config",
       "discriminator": [
         155,
         12,
@@ -982,7 +1207,7 @@ export const IDL = {
       ]
     },
     {
-      "name": "Game",
+      "name": "game",
       "discriminator": [
         27,
         90,
@@ -995,7 +1220,7 @@ export const IDL = {
       ]
     },
     {
-      "name": "GameSession",
+      "name": "gameSession",
       "discriminator": [
         150,
         116,
@@ -1010,7 +1235,7 @@ export const IDL = {
   ],
   "events": [
     {
-      "name": "StartGameEvent",
+      "name": "startGameEvent",
       "discriminator": [
         57,
         178,
@@ -1026,38 +1251,43 @@ export const IDL = {
   "errors": [
     {
       "code": 6000,
-      "name": "NotAuthorized",
+      "name": "notAuthorized",
       "msg": "You are not permit to do this operation"
     },
     {
       "code": 6001,
-      "name": "NotValidWord",
+      "name": "notValidWord",
       "msg": "This word is not valid"
     },
     {
       "code": 6002,
-      "name": "AnswerAlreadySubmitted",
+      "name": "answerAlreadySubmitted",
       "msg": "This word is already submitted"
     },
     {
       "code": 6003,
-      "name": "GameStarted",
+      "name": "gameStarted",
       "msg": "Game has started, can't upload jumble word"
     },
     {
       "code": 6004,
-      "name": "UpdateTooSoon",
+      "name": "updateTooSoon",
       "msg": "The game cannot be started as the last update was too recent."
     },
     {
       "code": 6005,
-      "name": "MaxPlayersReached",
+      "name": "maxPlayersReached",
       "msg": "Maximum number of players reached"
+    },
+    {
+      "code": 6006,
+      "name": "gameOver",
+      "msg": "Game over or not yet started"
     }
   ],
   "types": [
     {
-      "name": "Config",
+      "name": "config",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1073,7 +1303,7 @@ export const IDL = {
       }
     },
     {
-      "name": "Game",
+      "name": "game",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1081,7 +1311,7 @@ export const IDL = {
             "name": "status",
             "type": {
               "defined": {
-                "name": "Status"
+                "name": "status"
               }
             }
           },
@@ -1094,7 +1324,7 @@ export const IDL = {
             "type": "pubkey"
           },
           {
-            "name": "last_update",
+            "name": "lastUpdate",
             "type": "i64"
           },
           {
@@ -1105,7 +1335,7 @@ export const IDL = {
       }
     },
     {
-      "name": "GameScore",
+      "name": "gameScore",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1116,21 +1346,32 @@ export const IDL = {
           {
             "name": "score",
             "type": "u8"
+          },
+          {
+            "name": "answers",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  6
+                ]
+              }
+            }
           }
         ]
       }
     },
     {
-      "name": "GameSession",
+      "name": "gameSession",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "jumble_world",
+            "name": "jumbleWorld",
             "type": "string"
           },
           {
-            "name": "valid_words",
+            "name": "validWords",
             "type": {
               "vec": {
                 "array": [
@@ -1141,7 +1382,7 @@ export const IDL = {
             }
           },
           {
-            "name": "submitted_answers",
+            "name": "submittedAnswers",
             "type": {
               "vec": {
                 "array": [
@@ -1152,11 +1393,11 @@ export const IDL = {
             }
           },
           {
-            "name": "game_scores",
+            "name": "gameScores",
             "type": {
               "vec": {
                 "defined": {
-                  "name": "GameScore"
+                  "name": "gameScore"
                 }
               }
             }
@@ -1165,12 +1406,12 @@ export const IDL = {
       }
     },
     {
-      "name": "StartGameEvent",
+      "name": "startGameEvent",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "program_id",
+            "name": "programId",
             "type": "pubkey"
           },
           {
@@ -1185,33 +1426,33 @@ export const IDL = {
       }
     },
     {
-      "name": "Status",
+      "name": "status",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "INITIATED"
+            "name": "initiated"
           },
           {
-            "name": "STARTED"
+            "name": "started"
           },
           {
-            "name": "IDLE"
+            "name": "idle"
           }
         ]
       }
     },
     {
-      "name": "UploadParams",
+      "name": "uploadParams",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "jumble_world",
+            "name": "jumbleWorld",
             "type": "string"
           },
           {
-            "name": "valid_words",
+            "name": "validWords",
             "type": {
               "vec": {
                 "array": [
@@ -1225,4 +1466,4 @@ export const IDL = {
       }
     }
   ]
-} 
+};

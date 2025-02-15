@@ -66,3 +66,26 @@ export function hash(input: string) {
     hasher.update(input);
     return hasher.digest();
 }
+
+
+export const uint8ArrayToBase64 = (uint8Array: Uint8Array): string => {
+	return Buffer.from(uint8Array).toString('base64');
+};
+
+export function decodeAnswer(byteArray: number[]): string {
+    const uint8Array = new Uint8Array(byteArray);
+    let endIndex = uint8Array.indexOf(0);
+    if (endIndex === -1) {
+        endIndex = uint8Array.length;
+    }
+    const decoder = new TextDecoder();
+    return decoder.decode(uint8Array.slice(0, endIndex));
+}
+
+export interface GameScore {
+    player: string;
+    score: number;
+    answers: number[][];  // Array of byte arrays
+}
+
+ 
